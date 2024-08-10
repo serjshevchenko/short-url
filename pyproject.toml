@@ -7,6 +7,11 @@ authors = [
 ]
 dependencies = [
     "bloomfilter @ file:///home/happy/workspace/sandbox/bloomfilter/dist/bloomfilter-0.1.0-py3-none-any.whl",
+    "aiosqlite>=0.20.0",
+    "fastapi>=0.112.0",
+    "pydantic-settings>=2.4.0",
+    "uvicorn>=0.30.5",
+    "pydantic>=2.8.2",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"
@@ -17,7 +22,14 @@ build-backend = "hatchling.build"
 
 [tool.rye]
 managed = true
-dev-dependencies = []
+dev-dependencies = [
+    "pytest>=8.3.2",
+    "pytest-asyncio>=0.23.8",
+    "mypy>=1.11.1",
+    "ruff>=0.5.7",
+    "isort>=5.13.2",
+    "black>=24.8.0",
+]
 generate-hashes = true
 lock-with-sources = true
 virtual = true
@@ -27,3 +39,145 @@ allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/short_url"]
+
+[tool.ruff]
+# Refer to this rules if you need to config any submodule with ruff: https://beta.ruff.rs/docs/rules/
+
+lint.select = [
+    "E",    # pycodestyle errors,
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+#    "I",   # isort; uncomment this once it's fully configurable in ruff
+    "N",    # pep8-naming
+    "T20",  # flake8-print
+    "Q",    # flake8-quotes
+    "B",    # flake8-bugbear
+    "C",    # flake8-comprehensions
+    "S",    # flake8-bandit
+    "ANN",  # flake8-annotations
+    "COM",  # flake8-commas
+#    "A",   # flake8-builtins, TBD(discussed), many uses builtin names for variables
+    "C4",   # flake8-comprehensions
+    "DTZ",  # flake8-datetimez
+    "PIE",  # flake8-pie
+    "SIM",  # flake8-simplify
+    "TID",  # flake8-tidy-imports
+#    "TCH", # flake8-type-checking, enable once we agree, it may be too strict (although it helps even with circular imports)
+    "C90",  # mccabe
+    "UP",   # pyupgrade
+    "ERA",  # eradicate, checks for commented out code
+#    "ARG", # flake8-unused-arguments  (not all options available https://pypi.org/project/flake8-unused-arguments/)
+]
+
+lint.ignore = [
+    "B008",   # do not perform function calls in argument defaults
+    "S101",   # use of assert detected
+    "B904",   # allow raise without from inside except
+    "ANN401", # allow using typing.Any
+    "ANN101", # allow using self without annotation
+    "ANN102", # allow using cls without annotation
+]
+
+# Allow minus-sign (U+2212),and the asterisk-operator (U+2217),
+# which could be confused for "-", and "*", respectively.
+lint.allowed-confusables = ["−", "∗"]
+include = [
+    "short_url/**/*.py",
+    "tests/**/*.py",
+]
+lint.ignore-init-module-imports = true
+respect-gitignore = true
+output-format = "full"
+line-length = 100
+lint.dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+target-version = "py312"
+lint.task-tags = ["TODO", "FIXME"]
+
+[tool.ruff.lint.extend-per-file-ignores]
+"tests/**/*.py" = ["ANN001", "ANN201", "ANN202"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pep8-naming]
+classmethod-decorators = [
+    "classmethod",
+    "cls_validator",
+]
+
+[tool.ruff.lint.flake8-annotations]
+mypy-init-return = true
+
+
+[tool.mypy]
+python_version = "3.12"
+plugins = [
+  "pydantic.mypy"
+]
+enable_incomplete_feature = ["NewGenericSyntax"]
+
+ignore_missing_imports = true
+no_implicit_optional = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_decorators = true
+disallow_any_generics = true
+check_untyped_defs = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unused_ignores = true
+
+[tool.black]
+line-length = 100
+target-version = ['py312']
+include = '\.pyi?$'
+exclude = '''
+(
+    \.git
+  | env
+)
+'''
+
+[tool.isort]
+    # https://github.com/timothycrosley/isort/wiki/isort-Settings
+    profile = "black"
+    multi_line_output=3
+
+    indent='    '
+    line_length=100
+    lines_after_imports=2
+
+    sections=["FUTURE", "STDLIB","THIRDPARTY","COMPANY","FIRSTPARTY","LOCALFOLDER"]
+    default_section="THIRDPARTY"
+    no_lines_before=["LOCALFOLDER"]
+    extra_standard_library=["typing_extensions"]
+    known_third_party=["fastapi", "pydantic", "sqlalchemy"]
+    known_company=[]
+    known_first_party=["app", "tests"]
+
+    use_parentheses=true
+    include_trailing_comma=true
+
+    order_by_type=false
+    combine_star=true
+    combine_as_imports=true
+
+    skip=["tests/conftest.py", ]
+    skip_glob=[]
+
+
+[tool.pytest.ini_options]
+asyncio_mode = "strict"
+filterwarnings = [
+    # Remove once dependency injector moves to pydantic v2
+    "ignore::DeprecationWarning"
+]
+doctest_optionflags = "NORMALIZE_WHITESPACE"
+
+[tool.coverage.run]
+omit = ["*tests*"]
+
+#[tool.deptry.per_rule_ignores]
+#DEP002 = ["python-jose"]  # implicit used within in-house `wpp-core-kit`
+#DEP003 = ["pydantic_core"] # implicit with pydantic itself
